@@ -274,18 +274,44 @@
   .row:last-child{border-bottom:none;}
   .row:hover{background:rgba(255,255,255,.03);}
 
-  /* tek satır: kalkış saati > kalkış limanı > (ara saat > ara liman) > varış saati > varış limanı */
+  /* sabit sütunlar: kalkış saati | kalkış limanı | ok | ara saat | ara liman | ok | varış saati | varış limanı
+     Ara durak olsun olmasın sütun genişlikleri sabit kalır, böylece varış saati/limanı her satırda aynı hizada durur. */
   .journey{
-    display:flex;
+    display:grid;
+    grid-template-columns: 84px 92px 20px 84px 92px 20px 84px 92px;
     align-items:center;
-    gap:8px;
-    flex-wrap:nowrap;
-    white-space:nowrap;
+    column-gap:2px;
     overflow-x:auto;
     scrollbar-width:none;
     -ms-overflow-style:none;
   }
   .journey::-webkit-scrollbar{display:none;}
+
+  .board-header{
+    padding:0 20px;
+    margin-bottom:2px;
+  }
+  .board-header .journey{
+    padding:10px 0 9px;
+    border-bottom:1px solid rgba(255,255,255,.1);
+    overflow-x:visible;
+  }
+  .jhead{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:rgba(251,246,236,.55);
+    text-align:center;
+    white-space:nowrap;
+  }
+  .jhead-arrow{
+    color:var(--rope-400);
+    font-weight:400;
+    text-transform:none;
+    letter-spacing:0;
+  }
 
   .flap-time{
     display:flex;
@@ -321,21 +347,30 @@
   .flap-char.colon::after{display:none;}
 
   .jarrow{
-    flex:0 0 auto;
     color:var(--teal-400);
     font-size:13px;
     opacity:.85;
+    text-align:center;
   }
   .jport{
     font-family:'Public Sans',sans-serif;
     font-weight:700;
     font-size:14px;
     color:var(--sand-100);
-    flex:0 0 auto;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
   }
   .jport.mid{
     color:var(--rope-400);
     font-weight:600;
+  }
+  .ara-yok{
+    grid-column:span 2;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    color:rgba(251,246,236,.22);
+    text-align:center;
   }
 
   .row-meta{
@@ -343,6 +378,7 @@
     align-items:center;
     gap:8px;
     flex-wrap:wrap;
+    padding-left:2px;
   }
   .boat-tag{
     font-family:'IBM Plex Mono',monospace;
@@ -366,11 +402,16 @@
 
   @media (max-width:480px){
     .row{padding:12px 14px;}
-    .flap-char{width:13px;height:20px;font-size:13px;}
+    .board-header{padding:0 14px;}
+    .journey{grid-template-columns: 60px 66px 14px 60px 66px 14px 60px 66px;}
+    .flap-char{width:11px;height:18px;font-size:11px;}
     .flap-char.colon{width:4px;}
-    .jport{font-size:12px;}
-    .jarrow{font-size:11px;}
+    .jport{font-size:10.5px;}
+    .jhead{font-size:9px;}
+    .jarrow{font-size:10px;}
+    .ara-yok{font-size:8.5px;}
   }
+
 
   .empty-state{
     padding:60px 30px;
@@ -511,6 +552,15 @@
   </div>
 
   <div class="board">
+    <div class="board-header">
+      <div class="journey">
+        <span class="jhead" style="grid-column:1/3">Kalkış</span>
+        <span class="jhead jhead-arrow">→</span>
+        <span class="jhead" style="grid-column:4/6">Ara Durak</span>
+        <span class="jhead jhead-arrow">→</span>
+        <span class="jhead" style="grid-column:7/9">Varış</span>
+      </div>
+    </div>
     <div class="board-inner" id="board"></div>
   </div>
 
@@ -676,18 +726,18 @@ function renderBoard(list){
 
     const condHtml = r.kosulKodu ? `<span class="cond-badge" title="${SARTLAR[r.kosulKodu]||''}">${r.kosulKodu} koşullu</span>` : '';
 
-    // Sıra: kalkış saati > kalkış limanı > (ara saat > ara limanı, varsa) > varış saati > varış limanı
-    const araHtml = r.araLiman ? `
-        <span class="jarrow">→</span>
-        ${flapTime(r.araKalkisSaati)}
-        <span class="jport mid">${r.araLiman}</span>
-      ` : '';
+    // Sıra: kalkış saati > kalkış limanı > ok > (ara saat + ara limanı YA DA yer tutucu) > ok > varış saati > varış limanı
+    // Ara durak olsun olmasın grid'de daima 8 hücre dolduğu için varış saati/limanı her satırda aynı hizada kalır.
+    const araBlok = r.araLiman
+      ? `${flapTime(r.araKalkisSaati)}<span class="jport mid">${r.araLiman}</span>`
+      : `<span class="ara-yok">–</span>`;
 
     row.innerHTML = `
       <div class="journey">
         ${flapTime(r.kalkisSaati)}
         <span class="jport">${r.kalkisLimani}</span>
-        ${araHtml}
+        <span class="jarrow">→</span>
+        ${araBlok}
         <span class="jarrow">→</span>
         ${flapTime(r.varisSaati)}
         <span class="jport">${r.varisLimani}</span>
