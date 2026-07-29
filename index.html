@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Sedef Ada Vapur Tarifesi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-950:#081c29;
+    --navy-900:#0b2a3d;
+    --navy-800:#123b52;
+    --navy-700:#1a4d69;
+    --teal-500:#2e96a6;
+    --teal-400:#4fb3c2;
+    --sand-100:#fbf6ec;
+    --sand-200:#f1e7d3;
+    --sand-300:#e6d8bd;
+    --rope-400:#c9a15b;
+    --rope-500:#b3873f;
+    --ink-900:#16242e;
+    --ink-600:#4a5c68;
+    --coral-500:#e4633b;
+    --coral-100:#fbe4da;
+    --line:#dccfae;
+    --radius-s:6px;
+    --radius-m:12px;
+    --radius-l:22px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--sand-100);
+    color:var(--ink-900);
+    font-family:'Public Sans',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  ::selection{background:var(--rope-400);color:var(--navy-950);}
+
+  /* ---------- background texture ---------- */
+  .sea-backdrop{
+    position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:
+      radial-gradient(ellipse 900px 400px at 85% -5%, rgba(46,150,166,.14), transparent 60%),
+      radial-gradient(ellipse 700px 400px at -10% 10%, rgba(201,161,91,.16), transparent 55%),
+      var(--sand-100);
+  }
+
+  /* ---------- header ---------- */
+  header{
+    padding:44px 20px 28px;
+    max-width:680px;
+    margin:0 auto;
+    position:relative;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--rope-500);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--teal-500);box-shadow:0 0 0 3px rgba(46,150,166,.18);}
+  h1{
+    font-family:'Fraunces',serif;
+    font-optical-sizing:auto;
+    font-weight:600;
+    font-size:clamp(34px,6vw,54px);
+    line-height:1.02;
+    letter-spacing:-.01em;
+    margin:0 0 10px;
+    color:var(--navy-950);
+  }
+  h1 em{
+    font-style:italic;
+    color:var(--teal-500);
+    font-weight:500;
+  }
+  .sub{
+    font-size:16px;
+    color:var(--ink-600);
+    max-width:520px;
+    line-height:1.5;
+    margin:0;
+  }
+  .wave{
+    width:100%;
+    height:22px;
+    margin-top:26px;
+    display:block;
+  }
+
+  /* ---------- controls ---------- */
+  main{max-width:680px;margin:0 auto;padding:0 20px 80px;}
+
+  .panel{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:var(--radius-l);
+    padding:22px;
+    box-shadow:0 1px 2px rgba(11,42,61,.04);
+  }
+
+  .field-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink-600);
+    margin-bottom:10px;
+    display:block;
+  }
+
+  .day-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:22px;
+  }
+  .day-btn{
+    font-family:'Public Sans',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    padding:9px 14px;
+    border-radius:999px;
+    border:1.5px solid var(--line);
+    background:var(--sand-100);
+    color:var(--ink-600);
+    cursor:pointer;
+    transition:all .15s ease;
+    white-space:nowrap;
+  }
+  .day-btn:hover{border-color:var(--teal-500);color:var(--navy-900);}
+  .day-btn.active{
+    background:var(--navy-900);
+    border-color:var(--navy-900);
+    color:var(--sand-100);
+  }
+  .day-btn.is-today::after{
+    content:"";
+    display:inline-block;
+    width:5px;height:5px;
+    border-radius:50%;
+    background:var(--coral-500);
+    margin-left:6px;
+    vertical-align:middle;
+  }
+  .day-btn.active.is-today::after{background:var(--teal-400);}
+
+  .route-row{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    gap:12px;
+    align-items:end;
+  }
+  @media (max-width:560px){
+    .route-row{grid-template-columns:1fr;}
+    .swap-btn{justify-self:start; transform:rotate(90deg);}
+  }
+  .select-wrap{position:relative;}
+  select{
+    width:100%;
+    appearance:none;
+    -webkit-appearance:none;
+    font-family:'Public Sans',sans-serif;
+    font-weight:700;
+    font-size:16.5px;
+    color:var(--navy-950);
+    background:var(--sand-100);
+    border:1.5px solid var(--line);
+    border-radius:var(--radius-m);
+    padding:13px 40px 13px 15px;
+    cursor:pointer;
+    transition:border-color .15s ease;
+  }
+  select:hover{border-color:var(--teal-500);}
+  select:disabled{
+    background:var(--sand-200);
+    color:var(--ink-600);
+    cursor:not-allowed;
+    opacity:.85;
+  }
+  .select-wrap::after{
+    content:"";
+    position:absolute;
+    right:15px; top:50%;
+    width:9px;height:9px;
+    border-right:2px solid var(--ink-600);
+    border-bottom:2px solid var(--ink-600);
+    transform:translateY(-70%) rotate(45deg);
+    pointer-events:none;
+  }
+  .select-wrap.locked::after{display:none;}
+  .lock-note{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    color:var(--ink-600);
+    margin-top:6px;
+    display:block;
+  }
+  .swap-btn{
+    width:42px;height:42px;
+    border-radius:50%;
+    border:1.5px solid var(--line);
+    background:var(--sand-100);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    color:var(--navy-900);
+    transition:all .15s ease;
+    margin-bottom:2px;
+  }
+  .swap-btn:hover{border-color:var(--teal-500);background:#fff;transform:rotate(180deg);}
+  .swap-btn svg{width:18px;height:18px;}
+
+  .validity{
+    margin-top:18px;
+    padding-top:16px;
+    border-top:1px dashed var(--line);
+    font-size:12.5px;
+    color:var(--ink-600);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .validity b{color:var(--navy-900);font-weight:700;}
+  .out-of-range{color:var(--coral-500);font-weight:600;}
+
+  /* ---------- results ---------- */
+  .results-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin:38px 0 14px;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .results-title{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:22px;
+    color:var(--navy-950);
+  }
+  .results-count{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--ink-600);
+  }
+
+  .board{
+    background:linear-gradient(180deg,var(--navy-900),var(--navy-950));
+    border-radius:var(--radius-l);
+    padding:6px;
+    box-shadow:0 20px 40px -20px rgba(8,28,41,.5), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .board-inner{
+    border-radius:calc(var(--radius-l) - 6px);
+    overflow:hidden;
+  }
+  .row{
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+    padding:15px 20px;
+    border-bottom:1px solid rgba(255,255,255,.07);
+  }
+  .row:last-child{border-bottom:none;}
+  .row:hover{background:rgba(255,255,255,.03);}
+
+  /* sabit sütunlar: kalkış saati | kalkış limanı | ok | ara saat | ara liman | ok | varış saati | varış limanı
+     Ara durak olsun olmasın sütun genişlikleri sabit kalır, böylece varış saati/limanı her satırda aynı hizada durur. */
+  .journey{
+    display:grid;
+    grid-template-columns: 84px 92px 20px 84px 92px 20px 84px 92px;
+    align-items:center;
+    column-gap:2px;
+    overflow-x:auto;
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+  }
+  .journey::-webkit-scrollbar{display:none;}
+
+  .board-header{
+    padding:0 20px;
+    margin-bottom:2px;
+  }
+  .board-header .journey{
+    padding:10px 0 9px;
+    border-bottom:1px solid rgba(255,255,255,.1);
+    overflow-x:visible;
+  }
+  .jhead{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:rgba(251,246,236,.55);
+    text-align:center;
+    white-space:nowrap;
+  }
+  .jhead-arrow{
+    color:var(--rope-400);
+    font-weight:400;
+    text-transform:none;
+    letter-spacing:0;
+  }
+
+  .flap-time{
+    display:flex;
+    gap:3px;
+    flex:0 0 auto;
+  }
+  .flap-char{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    font-size:16px;
+    color:var(--sand-100);
+    background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.09);
+    border-radius:4px;
+    width:16px;
+    height:24px;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+    flex:0 0 auto;
+  }
+  .flap-char::after{
+    content:"";
+    position:absolute;
+    left:0;right:0;top:50%;
+    height:1px;
+    background:rgba(8,28,41,.55);
+  }
+  .flap-char.colon{
+    background:none;border:none;width:5px;
+    color:var(--teal-400);
+    font-weight:700;
+  }
+  .flap-char.colon::after{display:none;}
+
+  .jarrow{
+    color:var(--teal-400);
+    font-size:13px;
+    opacity:.85;
+    text-align:center;
+  }
+  .jport{
+    font-family:'Public Sans',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    color:var(--sand-100);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .jport.mid{
+    color:var(--rope-400);
+    font-weight:600;
+  }
+  .ara-yok{
+    grid-column:span 2;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    color:rgba(251,246,236,.22);
+    text-align:center;
+  }
+
+  .row-meta{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    padding-left:2px;
+  }
+  .boat-tag{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:.03em;
+    color:rgba(251,246,236,.55);
+  }
+  .cond-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    color:var(--coral-500);
+    background:rgba(228,99,59,.14);
+    border:1px solid rgba(228,99,59,.35);
+    padding:2px 7px;
+    border-radius:999px;
+    cursor:help;
+  }
+
+  @media (max-width:480px){
+    .row{padding:12px 14px;}
+    .board-header{padding:0 14px;}
+    .journey{grid-template-columns: 60px 66px 14px 60px 66px 14px 60px 66px;}
+    .flap-char{width:11px;height:18px;font-size:11px;}
+    .flap-char.colon{width:4px;}
+    .jport{font-size:10.5px;}
+    .jhead{font-size:9px;}
+    .jarrow{font-size:10px;}
+    .ara-yok{font-size:8.5px;}
+  }
+
+
+  .empty-state{
+    padding:60px 30px;
+    text-align:center;
+  }
+  .empty-state .glyph{
+    font-size:30px;
+    margin-bottom:14px;
+    opacity:.6;
+  }
+  .empty-state p{
+    font-family:'Public Sans',sans-serif;
+    color:rgba(251,246,236,.65);
+    font-size:14.5px;
+    max-width:340px;
+    margin:0 auto;
+    line-height:1.5;
+  }
+
+  /* ---------- footnotes ---------- */
+  .footnotes{
+    margin-top:22px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .footnote{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    font-size:13px;
+    color:var(--ink-600);
+    line-height:1.5;
+    background:var(--sand-200);
+    border:1px solid var(--line);
+    border-radius:var(--radius-m);
+    padding:12px 14px;
+  }
+  .footnote .glyph{
+    flex-shrink:0;
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:700;
+    color:var(--coral-500);
+  }
+
+  footer{
+    max-width:680px;
+    margin:60px auto 0;
+    padding:24px 20px 40px;
+    border-top:1px solid var(--line);
+    font-size:12px;
+    color:var(--ink-600);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+    font-family:'IBM Plex Mono',monospace;
+  }
+
+  /* ---------- sabit kısaltma barı ---------- */
+  body{padding-bottom:52px;}
+  .legend-bar{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    z-index:50;
+    background:var(--navy-950);
+    border-top:1px solid rgba(255,255,255,.08);
+    box-shadow:0 -8px 20px -8px rgba(8,28,41,.35);
+    padding:11px 16px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:6ch;
+    row-gap:4px;
+  }
+  .legend-item{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:rgba(251,246,236,.75);
+    white-space:nowrap;
+  }
+  .legend-item b{
+    color:var(--rope-400);
+    font-weight:700;
+    margin-right:5px;
+  }
+
+  @media (max-width:560px){
+    body{padding-bottom:70px;}
+    .legend-bar{gap:3ch; padding:9px 10px;}
+    .legend-item{font-size:10.5px;}
+  }
+
+</style>
+</head>
+<body>
+<div class="sea-backdrop"></div>
+
+<header>
+  <div class="eyebrow"><span class="dot"></span> ASYS · Akıllı Tarife</div>
+  <h1>Sedef Ada<br><em>vapur tarifesi</em></h1>
+  <p class="sub">Gününü ve limanını seç, Sedef Ada'ya ya da Sedef Ada'dan kalkan seferleri saniyeler içinde bul.</p>
+  <svg class="wave" viewBox="0 0 920 22" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0 11C60 2 120 20 180 11C240 2 300 20 360 11C420 2 480 20 540 11C600 2 660 20 720 11C780 2 840 20 900 11" stroke="#2E96A6" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+    <path d="M0 16C60 7 120 25 180 16C240 7 300 25 360 16C420 7 480 25 540 16C600 7 660 25 720 16C780 7 840 25 900 16" stroke="#C9A15B" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+  </svg>
+</header>
+
+<main>
+  <section class="panel">
+    <label class="field-label">Haftanın Günü</label>
+    <div class="day-row" id="dayRow"></div>
+
+    <label class="field-label">Güzergâh</label>
+    <div class="route-row">
+      <div class="select-wrap" id="kalkisWrap">
+        <select id="kalkisSelect" aria-label="Kalkış limanı"></select>
+      </div>
+      <button class="swap-btn" id="swapBtn" title="Yönü değiştir" aria-label="Yönü değiştir">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4M7 4L3 8M7 4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+      </button>
+      <div class="select-wrap locked" id="varisWrap">
+        <select id="varisSelect" aria-label="Varış limanı"></select>
+      </div>
+    </div>
+    <span class="lock-note" id="lockNote"></span>
+
+    <div class="validity">
+      <span>Geçerlilik aralığı: <b id="validityRange">—</b></span>
+      <span id="todayInfo"></span>
+    </div>
+  </section>
+
+  <div class="results-head">
+    <div class="results-title" id="resultsTitle">Seferler</div>
+    <div class="results-count" id="resultsCount"></div>
+  </div>
+
+  <div class="board">
+    <div class="board-header">
+      <div class="journey">
+        <span class="jhead" style="grid-column:1/3">Kalkış</span>
+        <span class="jhead jhead-arrow">→</span>
+        <span class="jhead" style="grid-column:4/6">Ara Durak</span>
+        <span class="jhead jhead-arrow">→</span>
+        <span class="jhead" style="grid-column:7/9">Varış</span>
+      </div>
+    </div>
+    <div class="board-inner" id="board"></div>
+  </div>
+
+  <div class="footnotes" id="footnotes"></div>
+</main>
+
+<footer>
+  <span>ASYS v1.0 — Sedef Ada Sefer Yönetim Sistemi verisinden üretilmiştir</span>
+  <span id="rangeFoot"></span>
+</footer>
+
+<div class="legend-bar">
+  <span class="legend-item"><b>D.T.</b>Dernek Teknesi</span>
+  <span class="legend-item"><b>Ş.H.</b>Şehir Hatları</span>
+  <span class="legend-item"><b>M.M.</b>Mavi Marmara</span>
+</div>
+
+<script>
+const VERI = [{"id":"SEF-0223","gun":"Pazartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"19:00","varisLimani":"Beşiktaş","varisSaati":"20:30","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":1040,"guzergah":"Sedef - Beşiktaş"},{"id":"SEF-0224","gun":"Salı","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"19:00","varisLimani":"Beşiktaş","varisSaati":"20:30","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":1040,"guzergah":"Sedef - Beşiktaş"},{"id":"SEF-0225","gun":"Çarşamba","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"19:00","varisLimani":"Beşiktaş","varisSaati":"20:30","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":1040,"guzergah":"Sedef - Beşiktaş"},{"id":"SEF-0226","gun":"Perşembe","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"19:00","varisLimani":"Beşiktaş","varisSaati":"20:30","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":1040,"guzergah":"Sedef - Beşiktaş"},{"id":"SEF-0227","gun":"Cuma","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"19:00","varisLimani":"Beşiktaş","varisSaati":"20:30","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":1040,"guzergah":"Sedef - Beşiktaş"},{"id":"SEF-0228","gun":"Cumartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"19:00","varisLimani":"Beşiktaş","varisSaati":"20:30","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":1040,"guzergah":"Sedef - Beşiktaş"},{"id":"SEF-0222","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"07:55","araLiman":"Büyükada","araKalkisSaati":"10:00","varisLimani":"Beşiktaş","varisSaati":"11:30","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":475,"guzergah":"Sedef - Beşiktaş"},{"id":"SEF-0229","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"19:00","varisLimani":"Beşiktaş","varisSaati":"20:30","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":1040,"guzergah":"Sedef - Beşiktaş"},{"id":"SEF-0124","gun":"Pazartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":"Büyükada","araKalkisSaati":"08:00","varisLimani":"Bostancı","varisSaati":"08:30","tekne":"Ş.H. / M.M.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":455,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0130","gun":"Pazartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":"Büyükada","araKalkisSaati":"10:00","varisLimani":"Bostancı","varisSaati":"11:10","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":455,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0143","gun":"Pazartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"09:20","araLiman":"Büyükada","araKalkisSaati":"10:00","varisLimani":"Bostancı","varisSaati":"11:10","tekne":"D.T. / Ş.H.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":1,"kalkisDakika":560,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0146","gun":"Pazartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"17:45","varisLimani":"Bostancı","varisSaati":"18:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":1040,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0125","gun":"Salı","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":"Büyükada","araKalkisSaati":"08:00","varisLimani":"Bostancı","varisSaati":"08:30","tekne":"Ş.H. / M.M.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":455,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0131","gun":"Salı","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":"Büyükada","araKalkisSaati":"10:00","varisLimani":"Bostancı","varisSaati":"11:10","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":455,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0147","gun":"Salı","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"17:45","varisLimani":"Bostancı","varisSaati":"18:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":1040,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0126","gun":"Çarşamba","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":"Büyükada","araKalkisSaati":"08:00","varisLimani":"Bostancı","varisSaati":"08:30","tekne":"Ş.H. / M.M.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":455,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0132","gun":"Çarşamba","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":"Büyükada","araKalkisSaati":"10:00","varisLimani":"Bostancı","varisSaati":"11:10","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":455,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0148","gun":"Çarşamba","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"17:45","varisLimani":"Bostancı","varisSaati":"18:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":1040,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0127","gun":"Perşembe","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":"Büyükada","araKalkisSaati":"08:00","varisLimani":"Bostancı","varisSaati":"08:30","tekne":"Ş.H. / M.M.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":455,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0133","gun":"Perşembe","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":"Büyükada","araKalkisSaati":"10:00","varisLimani":"Bostancı","varisSaati":"11:10","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":455,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0138","gun":"Perşembe","kalkisLimani":"Sedef Ada","kalkisSaati":"08:00","araLiman":"Büyükada","araKalkisSaati":"10:00","varisLimani":"Bostancı","varisSaati":"11:10","tekne":"D.T. / Ş.H.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":480,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0144","gun":"Perşembe","kalkisLimani":"Sedef Ada","kalkisSaati":"09:20","araLiman":"Büyükada","araKalkisSaati":"10:00","varisLimani":"Bostancı","varisSaati":"11:10","tekne":"D.T. / Ş.H.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":4,"kalkisDakika":560,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0149","gun":"Perşembe","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"17:45","varisLimani":"Bostancı","varisSaati":"18:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":1040,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0128","gun":"Cuma","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":"Büyükada","araKalkisSaati":"08:00","varisLimani":"Bostancı","varisSaati":"08:30","tekne":"Ş.H. / M.M.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":455,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0134","gun":"Cuma","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":"Büyükada","araKalkisSaati":"10:00","varisLimani":"Bostancı","varisSaati":"11:10","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":455,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0139","gun":"Cuma","kalkisLimani":"Sedef Ada","kalkisSaati":"08:30","araLiman":"Büyükada","araKalkisSaati":"10:00","varisLimani":"Bostancı","varisSaati":"11:10","tekne":"D.T. / Ş.H.","kosulKodu":"1️⃣","not_":null,"gunSira":5,"kalkisDakika":510,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0150","gun":"Cuma","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"17:45","varisLimani":"Bostancı","varisSaati":"18:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":1040,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0129","gun":"Cumartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":"Büyükada","araKalkisSaati":"08:00","varisLimani":"Bostancı","varisSaati":"08:30","tekne":"Ş.H. / M.M.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":455,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0135","gun":"Cumartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":"Büyükada","araKalkisSaati":"10:00","varisLimani":"Bostancı","varisSaati":"11:10","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":455,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0140","gun":"Cumartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"08:30","araLiman":"Büyükada","araKalkisSaati":"10:00","varisLimani":"Bostancı","varisSaati":"11:10","tekne":"D.T. / Ş.H.","kosulKodu":"1️⃣","not_":null,"gunSira":6,"kalkisDakika":510,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0151","gun":"Cumartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"17:45","varisLimani":"Bostancı","varisSaati":"18:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":1040,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0136","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"07:55","araLiman":"Büyükada","araKalkisSaati":"08:50","varisLimani":"Bostancı","varisSaati":"09:20","tekne":"Ş.H. / M.M.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":475,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0137","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"07:55","araLiman":"Büyükada","araKalkisSaati":"10:40","varisLimani":"Bostancı","varisSaati":"11:50","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":475,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0141","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"08:30","araLiman":"Büyükada","araKalkisSaati":"08:50","varisLimani":"Bostancı","varisSaati":"09:20","tekne":"D.T. / M.M.","kosulKodu":"1️⃣","not_":null,"gunSira":7,"kalkisDakika":510,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0142","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"08:30","araLiman":"Büyükada","araKalkisSaati":"10:40","varisLimani":"Bostancı","varisSaati":"11:50","tekne":"D.T. / Ş.H.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":510,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0145","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"09:20","araLiman":"Büyükada","araKalkisSaati":"10:00","varisLimani":"Bostancı","varisSaati":"11:10","tekne":"D.T. / Ş.H.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":7,"kalkisDakika":560,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0152","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"17:45","varisLimani":"Bostancı","varisSaati":"18:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":1040,"guzergah":"Sedef - Bostancı"},{"id":"SEF-0079","gun":"Pazartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":null,"araKalkisSaati":null,"varisLimani":"Büyükada","varisSaati":"07:50","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":455,"guzergah":"Sedef - Büyükada"},{"id":"SEF-0090","gun":"Pazartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"09:20","araLiman":null,"araKalkisSaati":null,"varisLimani":"Büyükada","varisSaati":"09:35","tekne":"D.T.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":1,"kalkisDakika":560,"guzergah":"Sedef - Büyükada"},{"id":"SEF-0093","gun":"Pazartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":null,"araKalkisSaati":null,"varisLimani":"Büyükada","varisSaati":"17:35","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":1040,"guzergah":"Sedef - Büyükada"},{"id":"SEF-0080","gun":"Salı","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":null,"araKalkisSaati":null,"varisLimani":"Büyükada","varisSaati":"07:50","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":455,"guzergah":"Sedef - Büyükada"},{"id":"SEF-0094","gun":"Salı","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":null,"araKalkisSaati":null,"varisLimani":"Büyükada","varisSaati":"17:35","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":1040,"guzergah":"Sedef - Büyükada"},{"id":"SEF-0081","gun":"Çarşamba","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":null,"araKalkisSaati":null,"varisLimani":"Büyükada","varisSaati":"07:50","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":455,"guzergah":"Sedef - Büyükada"},{"id":"SEF-0095","gun":"Çarşamba","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":null,"araKalkisSaati":null,"varisLimani":"Büyükada","varisSaati":"17:35","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":1040,"guzergah":"Sedef - Büyükada"},{"id":"SEF-0082","gun":"Perşembe","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":null,"araKalkisSaati":null,"varisLimani":"Büyükada","varisSaati":"07:50","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":455,"guzergah":"Sedef - Büyükada"},{"id":"SEF-0086","gun":"Perşembe","kalkisLimani":"Sedef Ada","kalkisSaati":"08:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Büyükada","varisSaati":"08:15","tekne":"D.T.","kosulKodu":"1️⃣","not_":"Sedef 'ten Büyükada'ya gidecek üye yolcu varsa Büyüada'ya uğrar.","gunSira":4,"kalkisDakika":480,"guzergah":"Sedef - Büyükada"},{"id":"SEF-0091","gun":"Perşembe","kalkisLimani":"Sedef Ada","kalkisSaati":"09:20","araLiman":null,"araKalkisSaati":null,"varisLimani":"Büyükada","varisSaati":"09:35","tekne":"D.T.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":4,"kalkisDakika":560,"guzergah":"Sedef - Büyükada"},{"id":"SEF-0096","gun":"Perşembe","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":null,"araKalkisSaati":null,"varisLimani":"Büyükada","varisSaati":"17:35","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":1040,"guzergah":"Sedef - Büyükada"},{"id":"SEF-0083","gun":"Cuma","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":null,"araKalkisSaati":null,"varisLimani":"Büyükada","varisSaati":"07:50","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":455,"guzergah":"Sedef - Büyükada"},{"id":"SEF-0087","gun":"Cuma","kalkisLimani":"Sedef Ada","kalkisSaati":"08:30","araLiman":null,"araKalkisSaati":null,"varisLimani":"Büyükada","varisSaati":"08:45","tekne":"D.T.","kosulKodu":"1️⃣","not_":"Sedef 'ten Büyükada'ya gidecek üye yolcu varsa Büyüada'ya uğrar.","gunSira":5,"kalkisDakika":510,"guzergah":"Sedef - Büyükada"},{"id":"SEF-0097","gun":"Cuma","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":null,"araKalkisSaati":null,"varisLimani":"Büyükada","varisSaati":"17:35","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":1040,"guzergah":"Sedef - Büyükada"},{"id":"SEF-0084","gun":"Cumartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":null,"araKalkisSaati":null,"varisLimani":"Büyükada","varisSaati":"07:50","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":455,"guzergah":"Sedef - Büyükada"},{"id":"SEF-0088","gun":"Cumartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"08:30","araLiman":null,"araKalkisSaati":null,"varisLimani":"Büyükada","varisSaati":"08:45","tekne":"D.T.","kosulKodu":"1️⃣","not_":"Sedef 'ten Büyükada'ya gidecek üye yolcu varsa Büyüada'ya uğrar.","gunSira":6,"kalkisDakika":510,"guzergah":"Sedef - Büyükada"},{"id":"SEF-0098","gun":"Cumartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":null,"araKalkisSaati":null,"varisLimani":"Büyükada","varisSaati":"17:35","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":1040,"guzergah":"Sedef - Büyükada"},{"id":"SEF-0085","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"07:55","araLiman":null,"araKalkisSaati":null,"varisLimani":"Büyükada","varisSaati":"08:10","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":475,"guzergah":"Sedef - Büyükada"},{"id":"SEF-0089","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"08:30","araLiman":null,"araKalkisSaati":null,"varisLimani":"Büyükada","varisSaati":"08:45","tekne":"D.T.","kosulKodu":"1️⃣","not_":"Sedef 'ten Büyükada'ya gidecek üye yolcu varsa Büyüada'ya uğrar.","gunSira":7,"kalkisDakika":510,"guzergah":"Sedef - Büyükada"},{"id":"SEF-0099","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":null,"araKalkisSaati":null,"varisLimani":"Büyükada","varisSaati":"17:35","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":1040,"guzergah":"Sedef - Büyükada"},{"id":"SEF-0177","gun":"Pazartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":"Büyükada","araKalkisSaati":"07:55","varisLimani":"Kabataş","varisSaati":"09:05","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":455,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0188","gun":"Pazartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"09:20","araLiman":"Büyükada","araKalkisSaati":"10:35","varisLimani":"Kabataş","varisSaati":"12:25","tekne":"D.T. / Ş.H.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":1,"kalkisDakika":560,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0191","gun":"Pazartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"17:35","varisLimani":"Kabataş","varisSaati":"19:25","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":1040,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0178","gun":"Salı","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":"Büyükada","araKalkisSaati":"07:55","varisLimani":"Kabataş","varisSaati":"09:05","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":455,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0192","gun":"Salı","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"17:35","varisLimani":"Kabataş","varisSaati":"19:25","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":1040,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0179","gun":"Çarşamba","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":"Büyükada","araKalkisSaati":"07:55","varisLimani":"Kabataş","varisSaati":"09:05","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":455,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0193","gun":"Çarşamba","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"17:35","varisLimani":"Kabataş","varisSaati":"19:25","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":1040,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0180","gun":"Perşembe","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":"Büyükada","araKalkisSaati":"07:55","varisLimani":"Kabataş","varisSaati":"09:05","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":455,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0184","gun":"Perşembe","kalkisLimani":"Sedef Ada","kalkisSaati":"08:00","araLiman":"Büyükada","araKalkisSaati":"09:00","varisLimani":"Kabataş","varisSaati":"10:50","tekne":"D.T. / Ş.H.","kosulKodu":"1️⃣","not_":"Sedef 'ten Büyükada'ya gidecek üye yolcu varsa Büyüada'ya uğrar.; Kalkış saati koşullu: 08:00","gunSira":4,"kalkisDakika":480,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0189","gun":"Perşembe","kalkisLimani":"Sedef Ada","kalkisSaati":"09:20","araLiman":"Büyükada","araKalkisSaati":"10:35","varisLimani":"Kabataş","varisSaati":"12:25","tekne":"D.T. / Ş.H.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":4,"kalkisDakika":560,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0194","gun":"Perşembe","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"17:35","varisLimani":"Kabataş","varisSaati":"19:25","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":1040,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0181","gun":"Cuma","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":"Büyükada","araKalkisSaati":"07:55","varisLimani":"Kabataş","varisSaati":"09:05","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":455,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0185","gun":"Cuma","kalkisLimani":"Sedef Ada","kalkisSaati":"08:30","araLiman":"Büyükada","araKalkisSaati":"09:00","varisLimani":"Kabataş","varisSaati":"10:50","tekne":"D.T. / Ş.H.","kosulKodu":"1️⃣","not_":"Sedef 'ten Büyükada'ya gidecek üye yolcu varsa Büyüada'ya uğrar.","gunSira":5,"kalkisDakika":510,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0195","gun":"Cuma","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"17:35","varisLimani":"Kabataş","varisSaati":"19:25","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":1040,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0182","gun":"Cumartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"07:35","araLiman":"Büyükada","araKalkisSaati":"07:55","varisLimani":"Kabataş","varisSaati":"09:05","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":455,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0186","gun":"Cumartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"08:30","araLiman":"Büyükada","araKalkisSaati":"09:00","varisLimani":"Kabataş","varisSaati":"10:50","tekne":"D.T. / Ş.H.","kosulKodu":"1️⃣","not_":"Sedef 'ten Büyükada'ya gidecek üye yolcu varsa Büyüada'ya uğrar.","gunSira":6,"kalkisDakika":510,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0196","gun":"Cumartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"17:35","varisLimani":"Kabataş","varisSaati":"19:25","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":1040,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0183","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"07:55","araLiman":"Büyükada","araKalkisSaati":"08:15","varisLimani":"Kabataş","varisSaati":"09:25","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":475,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0187","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"08:30","araLiman":"Büyükada","araKalkisSaati":"09:00","varisLimani":"Kabataş","varisSaati":"10:50","tekne":"D.T. / Ş.H.","kosulKodu":"1️⃣","not_":"Sedef 'ten Büyükada'ya gidecek üye yolcu varsa Büyüada'ya uğrar.","gunSira":7,"kalkisDakika":510,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0190","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"09:20","araLiman":"Büyükada","araKalkisSaati":"10:35","varisLimani":"Kabataş","varisSaati":"12:25","tekne":"D.T. / Ş.H.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":7,"kalkisDakika":560,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0197","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"17:20","araLiman":"Büyükada","araKalkisSaati":"17:35","varisLimani":"Kabataş","varisSaati":"19:25","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":1040,"guzergah":"Sedef - Kabataş"},{"id":"SEF-0001","gun":"Pazartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"08:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"08:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":480,"guzergah":"Sedef - Kartal"},{"id":"SEF-0013","gun":"Pazartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"10:15","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"10:30","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":615,"guzergah":"Sedef - Kartal"},{"id":"SEF-0020","gun":"Pazartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"14:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"14:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":840,"guzergah":"Sedef - Kartal"},{"id":"SEF-0027","gun":"Pazartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"17:30","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"17:45","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":1050,"guzergah":"Sedef - Kartal"},{"id":"SEF-0034","gun":"Pazartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"19:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"19:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":1140,"guzergah":"Sedef - Kartal"},{"id":"SEF-0002","gun":"Salı","kalkisLimani":"Sedef Ada","kalkisSaati":"08:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"08:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":480,"guzergah":"Sedef - Kartal"},{"id":"SEF-0014","gun":"Salı","kalkisLimani":"Sedef Ada","kalkisSaati":"10:15","araLiman":"Büyükada","araKalkisSaati":"10:30","varisLimani":"Kartal","varisSaati":"10:45","tekne":"D.T.","kosulKodu":"1️⃣","not_":"Sedef 'ten Büyükada'ya gidecek üye yolcu varsa Büyüada'ya uğrar.","gunSira":2,"kalkisDakika":615,"guzergah":"Sedef - Kartal"},{"id":"SEF-0021","gun":"Salı","kalkisLimani":"Sedef Ada","kalkisSaati":"14:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"14:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":840,"guzergah":"Sedef - Kartal"},{"id":"SEF-0028","gun":"Salı","kalkisLimani":"Sedef Ada","kalkisSaati":"17:30","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"17:45","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":1050,"guzergah":"Sedef - Kartal"},{"id":"SEF-0035","gun":"Salı","kalkisLimani":"Sedef Ada","kalkisSaati":"19:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"19:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":1140,"guzergah":"Sedef - Kartal"},{"id":"SEF-0003","gun":"Çarşamba","kalkisLimani":"Sedef Ada","kalkisSaati":"08:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"08:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":480,"guzergah":"Sedef - Kartal"},{"id":"SEF-0015","gun":"Çarşamba","kalkisLimani":"Sedef Ada","kalkisSaati":"10:15","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"10:30","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":615,"guzergah":"Sedef - Kartal"},{"id":"SEF-0022","gun":"Çarşamba","kalkisLimani":"Sedef Ada","kalkisSaati":"14:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"14:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":840,"guzergah":"Sedef - Kartal"},{"id":"SEF-0029","gun":"Çarşamba","kalkisLimani":"Sedef Ada","kalkisSaati":"17:30","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"17:45","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":1050,"guzergah":"Sedef - Kartal"},{"id":"SEF-0036","gun":"Çarşamba","kalkisLimani":"Sedef Ada","kalkisSaati":"19:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"19:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":1140,"guzergah":"Sedef - Kartal"},{"id":"SEF-0006","gun":"Perşembe","kalkisLimani":"Sedef Ada","kalkisSaati":"08:00","araLiman":"Büyükada","araKalkisSaati":"08:15","varisLimani":"Kartal","varisSaati":"08:30","tekne":"D.T.","kosulKodu":"1️⃣","not_":"Sedef 'ten Büyükada'ya gidecek üye yolcu varsa Büyüada'ya uğrar.","gunSira":4,"kalkisDakika":480,"guzergah":"Sedef - Kartal"},{"id":"SEF-0016","gun":"Perşembe","kalkisLimani":"Sedef Ada","kalkisSaati":"10:15","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"10:30","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":615,"guzergah":"Sedef - Kartal"},{"id":"SEF-0023","gun":"Perşembe","kalkisLimani":"Sedef Ada","kalkisSaati":"14:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"14:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":840,"guzergah":"Sedef - Kartal"},{"id":"SEF-0030","gun":"Perşembe","kalkisLimani":"Sedef Ada","kalkisSaati":"17:30","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"17:45","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":1050,"guzergah":"Sedef - Kartal"},{"id":"SEF-0037","gun":"Perşembe","kalkisLimani":"Sedef Ada","kalkisSaati":"19:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"19:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":1140,"guzergah":"Sedef - Kartal"},{"id":"SEF-0004","gun":"Cuma","kalkisLimani":"Sedef Ada","kalkisSaati":"08:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"08:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":480,"guzergah":"Sedef - Kartal"},{"id":"SEF-0007","gun":"Cuma","kalkisLimani":"Sedef Ada","kalkisSaati":"08:30","araLiman":"Büyükada","araKalkisSaati":"08:45","varisLimani":"Kartal","varisSaati":"09:00","tekne":"D.T.","kosulKodu":"1️⃣","not_":"Sedef 'ten Büyükada'ya gidecek üye yolcu varsa Büyüada'ya uğrar.","gunSira":5,"kalkisDakika":510,"guzergah":"Sedef - Kartal"},{"id":"SEF-0017","gun":"Cuma","kalkisLimani":"Sedef Ada","kalkisSaati":"10:15","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"10:30","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":615,"guzergah":"Sedef - Kartal"},{"id":"SEF-0024","gun":"Cuma","kalkisLimani":"Sedef Ada","kalkisSaati":"14:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"14:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":840,"guzergah":"Sedef - Kartal"},{"id":"SEF-0031","gun":"Cuma","kalkisLimani":"Sedef Ada","kalkisSaati":"17:30","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"17:45","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":1050,"guzergah":"Sedef - Kartal"},{"id":"SEF-0038","gun":"Cuma","kalkisLimani":"Sedef Ada","kalkisSaati":"19:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"19:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":1140,"guzergah":"Sedef - Kartal"},{"id":"SEF-0008","gun":"Cumartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"08:30","araLiman":"Büyükada","araKalkisSaati":"08:45","varisLimani":"Kartal","varisSaati":"09:00","tekne":"D.T.","kosulKodu":"1️⃣","not_":"Sedef 'ten Büyükada'ya gidecek üye yolcu varsa Büyüada'ya uğrar.","gunSira":6,"kalkisDakika":510,"guzergah":"Sedef - Kartal"},{"id":"SEF-0018","gun":"Cumartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"10:15","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"10:30","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":615,"guzergah":"Sedef - Kartal"},{"id":"SEF-0025","gun":"Cumartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"14:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"14:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":840,"guzergah":"Sedef - Kartal"},{"id":"SEF-0032","gun":"Cumartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"17:30","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"17:45","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":1050,"guzergah":"Sedef - Kartal"},{"id":"SEF-0039","gun":"Cumartesi","kalkisLimani":"Sedef Ada","kalkisSaati":"19:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"19:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":1140,"guzergah":"Sedef - Kartal"},{"id":"SEF-0005","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"08:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"08:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":480,"guzergah":"Sedef - Kartal"},{"id":"SEF-0009","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"08:30","araLiman":"Büyükada","araKalkisSaati":"08:45","varisLimani":"Kartal","varisSaati":"09:00","tekne":"D.T.","kosulKodu":"1️⃣","not_":"Sedef 'ten Büyükada'ya gidecek üye yolcu varsa Büyüada'ya uğrar.","gunSira":7,"kalkisDakika":510,"guzergah":"Sedef - Kartal"},{"id":"SEF-0019","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"10:15","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"10:30","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":615,"guzergah":"Sedef - Kartal"},{"id":"SEF-0026","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"14:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"14:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":840,"guzergah":"Sedef - Kartal"},{"id":"SEF-0033","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"17:30","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"17:45","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":1050,"guzergah":"Sedef - Kartal"},{"id":"SEF-0040","gun":"Pazar","kalkisLimani":"Sedef Ada","kalkisSaati":"19:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Kartal","varisSaati":"19:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":1140,"guzergah":"Sedef - Kartal"},{"id":"SEF-0230","gun":"Pazartesi","kalkisLimani":"Beşiktaş","kalkisSaati":"07:20","araLiman":"Büyükada","araKalkisSaati":"09:45","varisLimani":"Sedef Ada","varisSaati":"10:00","tekne":"Ş.H. / D.T.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":1,"kalkisDakika":440,"guzergah":"Beşiktaş - Sedef"},{"id":"SEF-0233","gun":"Pazartesi","kalkisLimani":"Beşiktaş","kalkisSaati":"07:20","araLiman":"Büyükada","araKalkisSaati":"10:05","varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":440,"guzergah":"Beşiktaş - Sedef"},{"id":"SEF-0239","gun":"Pazartesi","kalkisLimani":"Beşiktaş","kalkisSaati":"18:20","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":1100,"guzergah":"Beşiktaş - Sedef"},{"id":"SEF-0234","gun":"Salı","kalkisLimani":"Beşiktaş","kalkisSaati":"07:20","araLiman":"Büyükada","araKalkisSaati":"10:05","varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":440,"guzergah":"Beşiktaş - Sedef"},{"id":"SEF-0240","gun":"Salı","kalkisLimani":"Beşiktaş","kalkisSaati":"18:20","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":1100,"guzergah":"Beşiktaş - Sedef"},{"id":"SEF-0235","gun":"Çarşamba","kalkisLimani":"Beşiktaş","kalkisSaati":"07:20","araLiman":"Büyükada","araKalkisSaati":"10:05","varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":440,"guzergah":"Beşiktaş - Sedef"},{"id":"SEF-0241","gun":"Çarşamba","kalkisLimani":"Beşiktaş","kalkisSaati":"18:20","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":1100,"guzergah":"Beşiktaş - Sedef"},{"id":"SEF-0231","gun":"Perşembe","kalkisLimani":"Beşiktaş","kalkisSaati":"07:20","araLiman":"Büyükada","araKalkisSaati":"09:45","varisLimani":"Sedef Ada","varisSaati":"10:00","tekne":"Ş.H. / D.T.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":4,"kalkisDakika":440,"guzergah":"Beşiktaş - Sedef"},{"id":"SEF-0236","gun":"Perşembe","kalkisLimani":"Beşiktaş","kalkisSaati":"07:20","araLiman":"Büyükada","araKalkisSaati":"10:05","varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":440,"guzergah":"Beşiktaş - Sedef"},{"id":"SEF-0242","gun":"Perşembe","kalkisLimani":"Beşiktaş","kalkisSaati":"18:20","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":1100,"guzergah":"Beşiktaş - Sedef"},{"id":"SEF-0237","gun":"Cuma","kalkisLimani":"Beşiktaş","kalkisSaati":"07:20","araLiman":"Büyükada","araKalkisSaati":"10:05","varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":440,"guzergah":"Beşiktaş - Sedef"},{"id":"SEF-0243","gun":"Cuma","kalkisLimani":"Beşiktaş","kalkisSaati":"18:20","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":1100,"guzergah":"Beşiktaş - Sedef"},{"id":"SEF-0238","gun":"Cumartesi","kalkisLimani":"Beşiktaş","kalkisSaati":"07:20","araLiman":"Büyükada","araKalkisSaati":"10:05","varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":440,"guzergah":"Beşiktaş - Sedef"},{"id":"SEF-0244","gun":"Cumartesi","kalkisLimani":"Beşiktaş","kalkisSaati":"18:20","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":1100,"guzergah":"Beşiktaş - Sedef"},{"id":"SEF-0232","gun":"Pazar","kalkisLimani":"Beşiktaş","kalkisSaati":"07:20","araLiman":"Büyükada","araKalkisSaati":"09:45","varisLimani":"Sedef Ada","varisSaati":"10:00","tekne":"Ş.H. / D.T.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":7,"kalkisDakika":440,"guzergah":"Beşiktaş - Sedef"},{"id":"SEF-0245","gun":"Pazar","kalkisLimani":"Beşiktaş","kalkisSaati":"18:20","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":1100,"guzergah":"Beşiktaş - Sedef"},{"id":"SEF-0153","gun":"Pazartesi","kalkisLimani":"Bostancı","kalkisSaati":"07:45","araLiman":"Büyükada","araKalkisSaati":"09:45","varisLimani":"Sedef Ada","varisSaati":"10:00","tekne":"Ş.H. / D.T.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":1,"kalkisDakika":465,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0156","gun":"Pazartesi","kalkisLimani":"Bostancı","kalkisSaati":"09:25","araLiman":"Büyükada","araKalkisSaati":"10:05","varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":565,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0163","gun":"Pazartesi","kalkisLimani":"Bostancı","kalkisSaati":"11:00","araLiman":"Büyükada","araKalkisSaati":"12:00","varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"Ş.H. / D.T.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":1,"kalkisDakika":660,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0170","gun":"Pazartesi","kalkisLimani":"Bostancı","kalkisSaati":"18:35","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":1115,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0157","gun":"Salı","kalkisLimani":"Bostancı","kalkisSaati":"09:25","araLiman":"Büyükada","araKalkisSaati":"10:05","varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":565,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0164","gun":"Salı","kalkisLimani":"Bostancı","kalkisSaati":"11:00","araLiman":"Büyükada","araKalkisSaati":"12:00","varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"Ş.H. / D.T.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":2,"kalkisDakika":660,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0171","gun":"Salı","kalkisLimani":"Bostancı","kalkisSaati":"18:35","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":1115,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0158","gun":"Çarşamba","kalkisLimani":"Bostancı","kalkisSaati":"09:25","araLiman":"Büyükada","araKalkisSaati":"10:05","varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":565,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0165","gun":"Çarşamba","kalkisLimani":"Bostancı","kalkisSaati":"11:00","araLiman":"Büyükada","araKalkisSaati":"12:00","varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"Ş.H. / D.T.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":3,"kalkisDakika":660,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0172","gun":"Çarşamba","kalkisLimani":"Bostancı","kalkisSaati":"18:35","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":1115,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0154","gun":"Perşembe","kalkisLimani":"Bostancı","kalkisSaati":"07:45","araLiman":"Büyükada","araKalkisSaati":"09:45","varisLimani":"Sedef Ada","varisSaati":"10:00","tekne":"Ş.H. / D.T.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":4,"kalkisDakika":465,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0159","gun":"Perşembe","kalkisLimani":"Bostancı","kalkisSaati":"09:25","araLiman":"Büyükada","araKalkisSaati":"10:05","varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":565,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0166","gun":"Perşembe","kalkisLimani":"Bostancı","kalkisSaati":"11:00","araLiman":"Büyükada","araKalkisSaati":"12:00","varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"Ş.H. / D.T.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":4,"kalkisDakika":660,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0173","gun":"Perşembe","kalkisLimani":"Bostancı","kalkisSaati":"18:35","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":1115,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0160","gun":"Cuma","kalkisLimani":"Bostancı","kalkisSaati":"09:25","araLiman":"Büyükada","araKalkisSaati":"10:05","varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":565,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0167","gun":"Cuma","kalkisLimani":"Bostancı","kalkisSaati":"11:00","araLiman":"Büyükada","araKalkisSaati":"12:00","varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"Ş.H. / D.T.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":5,"kalkisDakika":660,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0174","gun":"Cuma","kalkisLimani":"Bostancı","kalkisSaati":"18:35","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":1115,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0161","gun":"Cumartesi","kalkisLimani":"Bostancı","kalkisSaati":"09:25","araLiman":"Büyükada","araKalkisSaati":"10:05","varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":565,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0168","gun":"Cumartesi","kalkisLimani":"Bostancı","kalkisSaati":"11:00","araLiman":"Büyükada","araKalkisSaati":"12:00","varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"Ş.H. / D.T.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":6,"kalkisDakika":660,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0175","gun":"Cumartesi","kalkisLimani":"Bostancı","kalkisSaati":"18:35","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":1115,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0155","gun":"Pazar","kalkisLimani":"Bostancı","kalkisSaati":"07:45","araLiman":"Büyükada","araKalkisSaati":"09:45","varisLimani":"Sedef Ada","varisSaati":"10:00","tekne":"Ş.H. / D.T.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":7,"kalkisDakika":465,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0162","gun":"Pazar","kalkisLimani":"Bostancı","kalkisSaati":"10:05","araLiman":"Büyükada","araKalkisSaati":"10:45","varisLimani":"Sedef Ada","varisSaati":"11:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":605,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0169","gun":"Pazar","kalkisLimani":"Bostancı","kalkisSaati":"11:00","araLiman":"Büyükada","araKalkisSaati":"12:00","varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"Ş.H. / D.T.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":7,"kalkisDakika":660,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0176","gun":"Pazar","kalkisLimani":"Bostancı","kalkisSaati":"18:35","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":1115,"guzergah":"Bostancı - Sedef"},{"id":"SEF-0100","gun":"Pazartesi","kalkisLimani":"Büyükada","kalkisSaati":"09:45","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"10:00","tekne":"D.T.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":1,"kalkisDakika":585,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0103","gun":"Pazartesi","kalkisLimani":"Büyükada","kalkisSaati":"10:05","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":605,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0110","gun":"Pazartesi","kalkisLimani":"Büyükada","kalkisSaati":"12:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":1,"kalkisDakika":720,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0117","gun":"Pazartesi","kalkisLimani":"Büyükada","kalkisSaati":"19:45","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":1185,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0104","gun":"Salı","kalkisLimani":"Büyükada","kalkisSaati":"10:05","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":605,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0111","gun":"Salı","kalkisLimani":"Büyükada","kalkisSaati":"12:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":2,"kalkisDakika":720,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0118","gun":"Salı","kalkisLimani":"Büyükada","kalkisSaati":"19:45","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":1185,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0105","gun":"Çarşamba","kalkisLimani":"Büyükada","kalkisSaati":"10:05","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":605,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0112","gun":"Çarşamba","kalkisLimani":"Büyükada","kalkisSaati":"12:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":3,"kalkisDakika":720,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0119","gun":"Çarşamba","kalkisLimani":"Büyükada","kalkisSaati":"19:45","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":1185,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0101","gun":"Perşembe","kalkisLimani":"Büyükada","kalkisSaati":"09:45","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"10:00","tekne":"D.T.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":4,"kalkisDakika":585,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0106","gun":"Perşembe","kalkisLimani":"Büyükada","kalkisSaati":"10:05","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":605,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0113","gun":"Perşembe","kalkisLimani":"Büyükada","kalkisSaati":"12:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":4,"kalkisDakika":720,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0120","gun":"Perşembe","kalkisLimani":"Büyükada","kalkisSaati":"19:45","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":1185,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0107","gun":"Cuma","kalkisLimani":"Büyükada","kalkisSaati":"10:05","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":605,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0114","gun":"Cuma","kalkisLimani":"Büyükada","kalkisSaati":"12:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":5,"kalkisDakika":720,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0121","gun":"Cuma","kalkisLimani":"Büyükada","kalkisSaati":"19:45","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":1185,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0108","gun":"Cumartesi","kalkisLimani":"Büyükada","kalkisSaati":"10:05","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":605,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0115","gun":"Cumartesi","kalkisLimani":"Büyükada","kalkisSaati":"12:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":6,"kalkisDakika":720,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0122","gun":"Cumartesi","kalkisLimani":"Büyükada","kalkisSaati":"19:45","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":1185,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0109","gun":"Pazar","kalkisLimani":"Büyükada","kalkisSaati":"10:45","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"11:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":645,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0116","gun":"Pazar","kalkisLimani":"Büyükada","kalkisSaati":"12:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":7,"kalkisDakika":720,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0123","gun":"Pazar","kalkisLimani":"Büyükada","kalkisSaati":"19:45","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":1185,"guzergah":"Büyükada - Sedef"},{"id":"SEF-0198","gun":"Pazartesi","kalkisLimani":"Kabataş","kalkisSaati":"08:00","araLiman":"Büyükada","araKalkisSaati":"09:45","varisLimani":"Sedef Ada","varisSaati":"10:00","tekne":"Ş.H. / D.T.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":1,"kalkisDakika":480,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0201","gun":"Pazartesi","kalkisLimani":"Kabataş","kalkisSaati":"08:00","araLiman":"Büyükada","araKalkisSaati":"10:05","varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":480,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0208","gun":"Pazartesi","kalkisLimani":"Kabataş","kalkisSaati":"10:05","araLiman":"Büyükada","araKalkisSaati":"12:00","varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"Ş.H. / D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":1,"kalkisDakika":605,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0215","gun":"Pazartesi","kalkisLimani":"Kabataş","kalkisSaati":"18:25","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":1105,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0202","gun":"Salı","kalkisLimani":"Kabataş","kalkisSaati":"08:00","araLiman":"Büyükada","araKalkisSaati":"10:05","varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":480,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0209","gun":"Salı","kalkisLimani":"Kabataş","kalkisSaati":"10:05","araLiman":"Büyükada","araKalkisSaati":"12:00","varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"Ş.H. / D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":2,"kalkisDakika":605,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0216","gun":"Salı","kalkisLimani":"Kabataş","kalkisSaati":"18:25","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":1105,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0203","gun":"Çarşamba","kalkisLimani":"Kabataş","kalkisSaati":"08:00","araLiman":"Büyükada","araKalkisSaati":"10:05","varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":480,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0210","gun":"Çarşamba","kalkisLimani":"Kabataş","kalkisSaati":"10:05","araLiman":"Büyükada","araKalkisSaati":"12:00","varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"Ş.H. / D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":3,"kalkisDakika":605,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0217","gun":"Çarşamba","kalkisLimani":"Kabataş","kalkisSaati":"18:25","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":1105,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0199","gun":"Perşembe","kalkisLimani":"Kabataş","kalkisSaati":"08:00","araLiman":"Büyükada","araKalkisSaati":"09:45","varisLimani":"Sedef Ada","varisSaati":"10:00","tekne":"Ş.H. / D.T.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":4,"kalkisDakika":480,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0204","gun":"Perşembe","kalkisLimani":"Kabataş","kalkisSaati":"08:00","araLiman":"Büyükada","araKalkisSaati":"10:05","varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":480,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0211","gun":"Perşembe","kalkisLimani":"Kabataş","kalkisSaati":"10:05","araLiman":"Büyükada","araKalkisSaati":"12:00","varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"Ş.H. / D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":4,"kalkisDakika":605,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0218","gun":"Perşembe","kalkisLimani":"Kabataş","kalkisSaati":"18:25","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":1105,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0205","gun":"Cuma","kalkisLimani":"Kabataş","kalkisSaati":"08:00","araLiman":"Büyükada","araKalkisSaati":"10:05","varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":480,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0212","gun":"Cuma","kalkisLimani":"Kabataş","kalkisSaati":"10:05","araLiman":"Büyükada","araKalkisSaati":"12:00","varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"Ş.H. / D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":5,"kalkisDakika":605,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0219","gun":"Cuma","kalkisLimani":"Kabataş","kalkisSaati":"18:25","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":1105,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0206","gun":"Cumartesi","kalkisLimani":"Kabataş","kalkisSaati":"08:00","araLiman":"Büyükada","araKalkisSaati":"10:05","varisLimani":"Sedef Ada","varisSaati":"10:20","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":480,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0213","gun":"Cumartesi","kalkisLimani":"Kabataş","kalkisSaati":"10:05","araLiman":"Büyükada","araKalkisSaati":"12:00","varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"Ş.H. / D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek olan yolcularımızın, önceden tekne personeline haber vermeleri rica olunur.","gunSira":6,"kalkisDakika":605,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0220","gun":"Cumartesi","kalkisLimani":"Kabataş","kalkisSaati":"18:25","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":1105,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0200","gun":"Pazar","kalkisLimani":"Kabataş","kalkisSaati":"08:00","araLiman":"Büyükada","araKalkisSaati":"09:45","varisLimani":"Sedef Ada","varisSaati":"10:00","tekne":"Ş.H. / D.T.","kosulKodu":"2️⃣","not_":"Üye yolcu varsa yapılır. Bu seferimize Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.","gunSira":7,"kalkisDakika":480,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0207","gun":"Pazar","kalkisLimani":"Kabataş","kalkisSaati":"08:30","araLiman":"Büyükada","araKalkisSaati":"10:45","varisLimani":"Sedef Ada","varisSaati":"11:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":510,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0214","gun":"Pazar","kalkisLimani":"Kabataş","kalkisSaati":"10:05","araLiman":"Büyükada","araKalkisSaati":"12:00","varisLimani":"Sedef Ada","varisSaati":"12:15","tekne":"Ş.H. / D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek olan yolcularımızın, önceden tekne personeline haber vermeleri rica olunur.","gunSira":7,"kalkisDakika":605,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0221","gun":"Pazar","kalkisLimani":"Kabataş","kalkisSaati":"18:25","araLiman":"Büyükada","araKalkisSaati":"19:45","varisLimani":"Sedef Ada","varisSaati":"20:00","tekne":"Ş.H.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":1105,"guzergah":"Kabataş - Sedef"},{"id":"SEF-0041","gun":"Pazartesi","kalkisLimani":"Kartal","kalkisSaati":"09:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"09:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":540,"guzergah":"Kartal - Sedef"},{"id":"SEF-0051","gun":"Pazartesi","kalkisLimani":"Kartal","kalkisSaati":"12:00","araLiman":"Büyükada","araKalkisSaati":"12:15","varisLimani":"Sedef Ada","varisSaati":"12:30","tekne":"D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek olan yolcularımızın, önceden tekne personeline haber vermeleri rica olunur.","gunSira":1,"kalkisDakika":705,"guzergah":"Kartal - Sedef"},{"id":"SEF-0058","gun":"Pazartesi","kalkisLimani":"Kartal","kalkisSaati":"14:45","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"15:00","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":885,"guzergah":"Kartal - Sedef"},{"id":"SEF-0065","gun":"Pazartesi","kalkisLimani":"Kartal","kalkisSaati":"18:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"18:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":1080,"guzergah":"Kartal - Sedef"},{"id":"SEF-0072","gun":"Pazartesi","kalkisLimani":"Kartal","kalkisSaati":"19:30","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"19:45","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":1,"kalkisDakika":1170,"guzergah":"Kartal - Sedef"},{"id":"SEF-0042","gun":"Salı","kalkisLimani":"Kartal","kalkisSaati":"09:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"09:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":540,"guzergah":"Kartal - Sedef"},{"id":"SEF-0052","gun":"Salı","kalkisLimani":"Kartal","kalkisSaati":"12:00","araLiman":"Büyükada","araKalkisSaati":"12:15","varisLimani":"Sedef Ada","varisSaati":"12:30","tekne":"D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek olan yolcularımızın, önceden tekne personeline haber vermeleri rica olunur.","gunSira":2,"kalkisDakika":705,"guzergah":"Kartal - Sedef"},{"id":"SEF-0059","gun":"Salı","kalkisLimani":"Kartal","kalkisSaati":"14:45","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"15:00","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":885,"guzergah":"Kartal - Sedef"},{"id":"SEF-0066","gun":"Salı","kalkisLimani":"Kartal","kalkisSaati":"18:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"18:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":1080,"guzergah":"Kartal - Sedef"},{"id":"SEF-0073","gun":"Salı","kalkisLimani":"Kartal","kalkisSaati":"19:30","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"19:45","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":2,"kalkisDakika":1170,"guzergah":"Kartal - Sedef"},{"id":"SEF-0043","gun":"Çarşamba","kalkisLimani":"Kartal","kalkisSaati":"09:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"09:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":540,"guzergah":"Kartal - Sedef"},{"id":"SEF-0053","gun":"Çarşamba","kalkisLimani":"Kartal","kalkisSaati":"12:00","araLiman":"Büyükada","araKalkisSaati":"12:15","varisLimani":"Sedef Ada","varisSaati":"12:30","tekne":"D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek olan yolcularımızın, önceden tekne personeline haber vermeleri rica olunur.","gunSira":3,"kalkisDakika":705,"guzergah":"Kartal - Sedef"},{"id":"SEF-0060","gun":"Çarşamba","kalkisLimani":"Kartal","kalkisSaati":"14:45","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"15:00","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":885,"guzergah":"Kartal - Sedef"},{"id":"SEF-0067","gun":"Çarşamba","kalkisLimani":"Kartal","kalkisSaati":"18:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"18:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":1080,"guzergah":"Kartal - Sedef"},{"id":"SEF-0074","gun":"Çarşamba","kalkisLimani":"Kartal","kalkisSaati":"19:30","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"19:45","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":3,"kalkisDakika":1170,"guzergah":"Kartal - Sedef"},{"id":"SEF-0044","gun":"Perşembe","kalkisLimani":"Kartal","kalkisSaati":"09:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"09:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":540,"guzergah":"Kartal - Sedef"},{"id":"SEF-0054","gun":"Perşembe","kalkisLimani":"Kartal","kalkisSaati":"12:00","araLiman":"Büyükada","araKalkisSaati":"12:15","varisLimani":"Sedef Ada","varisSaati":"12:30","tekne":"D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek olan yolcularımızın, önceden tekne personeline haber vermeleri rica olunur.","gunSira":4,"kalkisDakika":705,"guzergah":"Kartal - Sedef"},{"id":"SEF-0061","gun":"Perşembe","kalkisLimani":"Kartal","kalkisSaati":"14:45","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"15:00","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":885,"guzergah":"Kartal - Sedef"},{"id":"SEF-0068","gun":"Perşembe","kalkisLimani":"Kartal","kalkisSaati":"18:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"18:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":1080,"guzergah":"Kartal - Sedef"},{"id":"SEF-0075","gun":"Perşembe","kalkisLimani":"Kartal","kalkisSaati":"19:30","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"19:45","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":4,"kalkisDakika":1170,"guzergah":"Kartal - Sedef"},{"id":"SEF-0045","gun":"Cuma","kalkisLimani":"Kartal","kalkisSaati":"09:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"09:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":540,"guzergah":"Kartal - Sedef"},{"id":"SEF-0055","gun":"Cuma","kalkisLimani":"Kartal","kalkisSaati":"12:00","araLiman":"Büyükada","araKalkisSaati":"12:15","varisLimani":"Sedef Ada","varisSaati":"12:30","tekne":"D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek olan yolcularımızın, önceden tekne personeline haber vermeleri rica olunur.","gunSira":5,"kalkisDakika":705,"guzergah":"Kartal - Sedef"},{"id":"SEF-0062","gun":"Cuma","kalkisLimani":"Kartal","kalkisSaati":"14:45","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"15:00","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":885,"guzergah":"Kartal - Sedef"},{"id":"SEF-0069","gun":"Cuma","kalkisLimani":"Kartal","kalkisSaati":"18:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"18:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":1080,"guzergah":"Kartal - Sedef"},{"id":"SEF-0076","gun":"Cuma","kalkisLimani":"Kartal","kalkisSaati":"19:30","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"19:45","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":5,"kalkisDakika":1170,"guzergah":"Kartal - Sedef"},{"id":"SEF-0046","gun":"Cumartesi","kalkisLimani":"Kartal","kalkisSaati":"09:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"09:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":540,"guzergah":"Kartal - Sedef"},{"id":"SEF-0056","gun":"Cumartesi","kalkisLimani":"Kartal","kalkisSaati":"12:00","araLiman":"Büyükada","araKalkisSaati":"12:15","varisLimani":"Sedef Ada","varisSaati":"12:30","tekne":"D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek olan yolcularımızın, önceden tekne personeline haber vermeleri rica olunur.","gunSira":6,"kalkisDakika":705,"guzergah":"Kartal - Sedef"},{"id":"SEF-0063","gun":"Cumartesi","kalkisLimani":"Kartal","kalkisSaati":"14:45","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"15:00","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":885,"guzergah":"Kartal - Sedef"},{"id":"SEF-0070","gun":"Cumartesi","kalkisLimani":"Kartal","kalkisSaati":"18:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"18:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":1080,"guzergah":"Kartal - Sedef"},{"id":"SEF-0077","gun":"Cumartesi","kalkisLimani":"Kartal","kalkisSaati":"19:30","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"19:45","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":6,"kalkisDakika":1170,"guzergah":"Kartal - Sedef"},{"id":"SEF-0047","gun":"Pazar","kalkisLimani":"Kartal","kalkisSaati":"09:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"09:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":540,"guzergah":"Kartal - Sedef"},{"id":"SEF-0057","gun":"Pazar","kalkisLimani":"Kartal","kalkisSaati":"12:00","araLiman":"Büyükada","araKalkisSaati":"12:15","varisLimani":"Sedef Ada","varisSaati":"12:30","tekne":"D.T.","kosulKodu":"3️⃣","not_":"Büyükada'dan Sedef'e üye yolcu varsa Büyüakada'ya uğrar. Büyükada'dan binecek olan yolcularımızın, önceden tekne personeline haber vermeleri rica olunur.","gunSira":7,"kalkisDakika":705,"guzergah":"Kartal - Sedef"},{"id":"SEF-0064","gun":"Pazar","kalkisLimani":"Kartal","kalkisSaati":"14:45","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"15:00","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":885,"guzergah":"Kartal - Sedef"},{"id":"SEF-0071","gun":"Pazar","kalkisLimani":"Kartal","kalkisSaati":"18:00","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"18:15","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":1080,"guzergah":"Kartal - Sedef"},{"id":"SEF-0078","gun":"Pazar","kalkisLimani":"Kartal","kalkisSaati":"19:30","araLiman":null,"araKalkisSaati":null,"varisLimani":"Sedef Ada","varisSaati":"19:45","tekne":"D.T.","kosulKodu":null,"not_":null,"gunSira":7,"kalkisDakika":1170,"guzergah":"Kartal - Sedef"}];
+
+const GUNLER = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"];
+const GUNLER_KISA = {"Pazartesi":"Pzt","Salı":"Sal","Çarşamba":"Çar","Perşembe":"Per","Cuma":"Cum","Cumartesi":"Cmt","Pazar":"Paz"};
+const SEDEF = "Sedef Ada";
+const DIGER_LIMANLAR = ["Büyükada","Beşiktaş","Bostancı","Kabataş","Kartal"];
+const TUM_KALKIS_LIMANLARI = [SEDEF, ...DIGER_LIMANLAR];
+
+const GECERLILIK_BAS = new Date(2026,5,29);
+const GECERLILIK_BIT = new Date(2026,7,30);
+
+const SARTLAR = {
+  "2️⃣": "Üye yolcu varsa yapılır. Büyükada'dan Sedef'e tek yönlü binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur.",
+  "1️⃣": "Sedef'ten Büyükada'ya gidecek üye yolcu varsa Büyükada'ya uğrar.",
+  "3️⃣": "Büyükada'dan Sedef'e üye yolcu varsa Büyükada'ya uğrar. Büyükada'dan binecek yolcuların önceden tekne ekibine haber vermeleri rica olunur."
+};
+
+function todayGun(){
+  // JS getDay(): 0=Pazar..6=Cumartesi -> map to our list
+  const map = [6,0,1,2,3,4,5]; // index by getDay() -> index in GUNLER
+  const d = new Date();
+  return GUNLER[map[d.getDay()]];
+}
+
+let state = {
+  gun: todayGun(),
+  kalkis: SEDEF,
+  varis: DIGER_LIMANLAR[0]
+};
+
+function fmtDate(d){
+  return d.toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'});
+}
+
+function buildDayRow(){
+  const wrap = document.getElementById('dayRow');
+  wrap.innerHTML = '';
+  const tg = todayGun();
+  GUNLER.forEach(g=>{
+    const btn = document.createElement('button');
+    btn.className = 'day-btn' + (g===state.gun?' active':'') + (g===tg?' is-today':'');
+    btn.textContent = GUNLER_KISA[g];
+    btn.setAttribute('aria-pressed', g===state.gun);
+    btn.addEventListener('click', ()=>{ state.gun = g; render(); });
+    wrap.appendChild(btn);
+  });
+}
+
+function buildKalkisSelect(){
+  const sel = document.getElementById('kalkisSelect');
+  sel.innerHTML = '';
+  TUM_KALKIS_LIMANLARI.forEach(l=>{
+    const opt = document.createElement('option');
+    opt.value = l; opt.textContent = l;
+    if(l===state.kalkis) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', e=>{
+    state.kalkis = e.target.value;
+    if(state.kalkis === SEDEF){
+      if(!DIGER_LIMANLAR.includes(state.varis)) state.varis = DIGER_LIMANLAR[0];
+    }
+    render();
+  });
+}
+
+function buildVarisSelect(){
+  const sel = document.getElementById('varisSelect');
+  const wrap = document.getElementById('varisWrap');
+  const note = document.getElementById('lockNote');
+  sel.innerHTML = '';
+  sel.removeEventListener('change', varisChangeHandler);
+
+  if(state.kalkis === SEDEF){
+    sel.disabled = false;
+    wrap.classList.remove('locked');
+    DIGER_LIMANLAR.forEach(l=>{
+      const opt = document.createElement('option');
+      opt.value = l; opt.textContent = l;
+      if(l===state.varis) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', varisChangeHandler);
+    note.textContent = 'Kalkış Sedef Ada olduğunda varış limanı seçilebilir.';
+  } else {
+    sel.disabled = true;
+    wrap.classList.add('locked');
+    const opt = document.createElement('option');
+    opt.value = SEDEF; opt.textContent = SEDEF;
+    opt.selected = true;
+    sel.appendChild(opt);
+    note.textContent = 'Kalkış Sedef Ada değilse varış otomatik olarak Sedef Ada kabul edilir.';
+  }
+}
+
+function varisChangeHandler(e){
+  state.varis = e.target.value;
+  render();
+}
+
+function swapDirection(){
+  if(state.kalkis === SEDEF){
+    state.kalkis = state.varis;
+    state.varis = DIGER_LIMANLAR[0];
+  } else {
+    const eski = state.kalkis;
+    state.kalkis = SEDEF;
+    state.varis = eski;
+  }
+  render();
+}
+
+function filteredSeferler(){
+  const hedefVaris = state.kalkis === SEDEF ? state.varis : SEDEF;
+  return VERI.filter(r => r.gun === state.gun && r.kalkisLimani === state.kalkis && r.varisLimani === hedefVaris)
+             .sort((a,b)=> a.kalkisDakika - b.kalkisDakika);
+}
+
+function flapTime(t){
+  if(!t) return '';
+  const el = document.createElement('span');
+  el.className = 'flap-time';
+  [...t].forEach(ch=>{
+    const c = document.createElement('span');
+    c.className = 'flap-char' + (ch===':' ? ' colon':'');
+    c.textContent = ch;
+    el.appendChild(c);
+  });
+  return el.outerHTML;
+}
+
+function renderBoard(list){
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  if(list.length === 0){
+    board.innerHTML = `<div class="empty-state">
+      <div class="glyph">⚓</div>
+      <p>Bu gün ve güzergâh için planlanmış sefer bulunamadı. Başka bir gün ya da liman deneyin.</p>
+    </div>`;
+    return;
+  }
+  list.forEach(r=>{
+    const row = document.createElement('div');
+    row.className = 'row';
+
+    const condHtml = r.kosulKodu ? `<span class="cond-badge" title="${SARTLAR[r.kosulKodu]||''}">${r.kosulKodu} koşullu</span>` : '';
+
+    // Sıra: kalkış saati > kalkış limanı > ok > (ara saat + ara limanı YA DA yer tutucu) > ok > varış saati > varış limanı
+    // Ara durak olsun olmasın grid'de daima 8 hücre dolduğu için varış saati/limanı her satırda aynı hizada kalır.
+    const araBlok = r.araLiman
+      ? `${flapTime(r.araKalkisSaati)}<span class="jport mid">${r.araLiman}</span>`
+      : `<span class="ara-yok">–</span>`;
+
+    row.innerHTML = `
+      <div class="journey">
+        ${flapTime(r.kalkisSaati)}
+        <span class="jport">${r.kalkisLimani}</span>
+        <span class="jarrow">→</span>
+        ${araBlok}
+        <span class="jarrow">→</span>
+        ${flapTime(r.varisSaati)}
+        <span class="jport">${r.varisLimani}</span>
+      </div>
+      <div class="row-meta">
+        <span class="boat-tag">${r.tekne}</span>
+        ${condHtml}
+      </div>
+    `;
+    board.appendChild(row);
+  });
+}
+
+function renderFootnotes(list){
+  const wrap = document.getElementById('footnotes');
+  wrap.innerHTML = '';
+  const kodlar = [...new Set(list.map(r=>r.kosulKodu).filter(Boolean))];
+  kodlar.forEach(k=>{
+    const div = document.createElement('div');
+    div.className = 'footnote';
+    div.innerHTML = `<span class="glyph">${k}</span><span>${SARTLAR[k]||''}</span>`;
+    wrap.appendChild(div);
+  });
+}
+
+function render(){
+  buildDayRow();
+  document.getElementById('kalkisSelect').value = state.kalkis;
+  buildVarisSelect();
+
+  const list = filteredSeferler();
+  renderBoard(list);
+  renderFootnotes(list);
+
+  const hedefVaris = state.kalkis === SEDEF ? state.varis : SEDEF;
+  const araliDurak = list.find(r => r.araLiman);
+  const baslikRotasi = araliDurak
+    ? `${state.kalkis} → ${araliDurak.araLiman} → ${hedefVaris}`
+    : `${state.kalkis} → ${hedefVaris}`;
+  document.getElementById('resultsTitle').textContent = `${baslikRotasi} · ${state.gun}`;
+  document.getElementById('resultsCount').textContent = list.length + (list.length===1 ? ' sefer' : ' sefer bulundu');
+
+  document.getElementById('validityRange').textContent = `${fmtDate(GECERLILIK_BAS)} – ${fmtDate(GECERLILIK_BIT)}`;
+  document.getElementById('rangeFoot').textContent = `Tarife: ${fmtDate(GECERLILIK_BAS)} – ${fmtDate(GECERLILIK_BIT)}`;
+
+  const now = new Date();
+  const inRange = now >= GECERLILIK_BAS && now <= GECERLILIK_BIT;
+  const todayEl = document.getElementById('todayInfo');
+  if(inRange){
+    todayEl.textContent = `Bugün: ${todayGun()}, ${fmtDate(now)}`;
+    todayEl.className = '';
+  } else {
+    todayEl.textContent = `Bugün tarife aralığının dışında (${fmtDate(now)})`;
+    todayEl.className = 'out-of-range';
+  }
+}
+
+buildKalkisSelect();
+document.getElementById('swapBtn').addEventListener('click', swapDirection);
+render();
+</script>
+</body>
+</html>
